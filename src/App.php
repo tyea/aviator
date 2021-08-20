@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse as Redirect;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class App
 {
@@ -121,6 +122,16 @@ class App
 		}
 		return self::$request;
 	}
+
+    protected static $session;
+
+    public static function session(): Session
+    {
+        if (!self::$session) {
+            self::$session = new Session();
+        }
+        return self::$session;
+    }
 
 	public static function response(string $content, int $code = 200, array $headers = []): void
 	{

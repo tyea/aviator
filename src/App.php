@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse as Redirect;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Exception;
 
 class App
 {
@@ -19,28 +20,72 @@ class App
 	{
 	}
 
-	protected static $before;
+	private static $request;
 
-	public static function before(callable $callback = null)
+	public static function request(): Request
 	{
-		if (!$callback) {
-			if (!self::$before) {
-				self::$before = function () {
-				};
-			}
-			return self::$before;
+		if (!App::$request) {
+			App::$request = Request::createFromGlobals();
 		}
-		self::$before = $callback;
+		return App::$request;
 	}
 
-	protected static $routes;
+	private static $session;
+
+	public static function session(): Session
+	{
+		if (!App::$session) {
+			App::$session = new Session();
+		}
+		return App::$session;
+	}
+
+	public static function response(string $content, int $code = 200, array $headers = []): void
+	{
+		$response = new Response($content, $code, $headers);
+		$response->prepare(App::request());
+		$response->send();
+		exit();
+	}
+
+	public static function redirect(string $destination, int $code = 302, array $headers = []): void
+	{
+		$response = new Redirect($destination, $code, $headers);
+		$response->prepare(App::request());
+		$response->send();
+		exit();
+	}
+
+	public static function json($data, int $code = 200, array $headers = []): void
+	{
+		$response = new JsonResponse($data, $code, $headers);
+		$response->prepare(App::request());
+		$response->send();
+		exit();
+	}
+
+	private static $before;
+
+	public static function before(callable $before = null)
+	{
+		if (!$before) {
+			if (!App::$before) {
+				App::$before = function () {
+				};
+			}
+			return App::$before;
+		}
+		App::$before = $before;
+	}
+
+	private static $routes;
 
 	private static function routes(): Routes
 	{
-		if (!self::$routes) {
-			self::$routes = new Routes();
+		if (!App::$routes) {
+			App::$routes = new Routes();
 		}
-		return self::$routes;
+		return App::$routes;
 	}
 
 	public static function route($methods, string $path, callable $callback): void
@@ -52,47 +97,50 @@ class App
 		$route = new Route($path);
 		$route->setMethods($methods);
 		$route->addDefaults(["_callback" => $callback]);
-		self::routes()->add($name, $route);
+		App::routes()->add($name, $route);
 	}
 
-	protected static $fallback;
+	private static $fallback;
 
-	public static function fallback(callable $callback = null)
+	public static function fallback(callable $fallback = null)
 	{
-		if (!$callback) {
-			if (!self::$fallback) {
-				self::$fallback = function () {
-					self::json((object) [], 404);
+		if (!$fallback) {
+			if (!App::$fallback) {
+				App::$fallback = function () {
+					App::json((object) [], 404);
 				};
 			}
-			return self::$fallback;
+			return App::$fallback;
 		}
-		self::$fallback = $callback;
+		App::$fallback = $fallback;
 	}
 
-	protected static $error;
+	private static $error;
 
-	public static function error(callable $callback = null)
+	public static function error(callable $error = null)
 	{
-		if (!$callback) {
-			if (!self::$error) {
-				self::$error = function (Throwable $throwable) {
-					error_log($throwable);
-					self::json((object) [], 500);
+		if (!$error) {
+			if (!App::$error) {
+				App::$error = function (Exception $exception) {
+				    if (env("DATABASE_USERNAME", "false") == "true") {
+				        dd($exception);
+                    }
+					error_log($exception);
+					App::json((object) [], 500);
 				};
 			}
-			return self::$error;
+			return App::$error;
 		}
-		self::$error = $callback;
+		App::$error = $error;
 	}
 
 	public static function start(): void
 	{
 		$context = new Context();
-		$context->fromRequest(self::request());
-		$matcher = new Matcher(self::routes(), $context);
+		$context->fromRequest(App::request());
+		$matcher = new Matcher(App::routes(), $context);
 		try {
-			$match = $matcher->match(self::request()->getPathInfo());
+			$match = $matcher->match(App::request()->getPathInfo());
 			$callback = $match["_callback"];
 			$args = array_filter(
 				$match,
@@ -102,67 +150,14 @@ class App
 				ARRAY_FILTER_USE_BOTH
 			);
 		} catch (RoutingException $exception) {
-			$callback = self::fallback();
+			$callback = App::fallback();
 			$args = [];
 		}
 		try {
-			call_user_func(self::before());
+			call_user_func(App::before());
 			call_user_func_array($callback, $args);
-		} catch (Throwable $throwable) {
-			call_user_func_array(self::error(), [$throwable]);
+		} catch (Exception $exception) {
+			call_user_func_array(App::error(), [$exception]);
 		}
-	}
-
-	protected static $request;
-
-	public static function request(): Request
-	{
-		if (!self::$request) {
-			self::$request = Request::createFromGlobals();
-		}
-		return self::$request;
-	}
-
-    protected static $session;
-
-    public static function session(): Session
-    {
-        if (!self::$session) {
-            self::$session = new Session();
-        }
-        return self::$session;
-    }
-
-	public static function response(string $content, int $code = 200, array $headers = []): void
-	{
-		$response = new Response($content, $code, $headers);
-		$response->prepare(self::request());
-		$response->send();
-		exit();
-	}
-
-	public static function redirect(string $destination, int $code = 302, array $headers = []): void
-	{
-		$response = new Redirect($destination, $code, $headers);
-		$response->prepare(self::request());
-		$response->send();
-		exit();
-	}
-
-	public static function json($data, int $code = 200, array $headers = []): void
-	{
-		$response = new JsonResponse($data, $code, $headers);
-		$response->prepare(self::request());
-		$response->send();
-		exit();
-	}
-
-	public static function dd($var = null): void
-	{
-		ob_start();
-		var_dump($var);
-		$dump = ob_get_clean();
-		$html = "<pre>" . htmlentities($dump) . "</pre>";
-		self::response($html, 500);
 	}
 }

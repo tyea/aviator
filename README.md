@@ -4,84 +4,45 @@
 
 Aviator is a Symfony based microframework for prototyping applications.
 
-## Requirements
-
-* PHP >= 7.2
-
 ## Installation
 
 ```
 composer require tyea/aviator
 ```
 
+## Ethos
+
+<<<
+
+## Features
+
+* Requests - `App::request()`
+* Responses - `App::response()`, `App::redirect()`, and `App::json()`
+* Routing - `App::route()`, `App::fallback()`, and `App::start()`
+* Error Handling - `App::error()`
+* Hooks - `App::before()`
+* Config - `env()`
+* Validation <<<
+* Database
+    * Insert - `Db::insert()`
+    * Select - `Db::row()`, `Db::column()`, `Db::rows()`, `Db::columns()`, and `Db::map()`
+    * Delete - `Db::update()`, and `Db::modify()`
+    * Delete - `Db::delete()`, and `Db::modify()`
+    * Execute - `Db::execute()`
+    * Migrations - `migrate()`
+* Emails <<<
+* Templating <<<
+* Sessions - `App::session()`
+* Dates & Times - `now()`, `MYSQL_DATE`, `MYSQL_TIME`, and `MYSQL_DATETIME`
+* Debugging - `dd()`
+
 ## Example
 
-```
-<?php
+<<<
 
-require(__DIR__ . "/../vendor/autoload.php");
+## Gotchas
 
-use Tyea\Aviator\App;
-
-App::before(function () {
-	App::session()->start();
-});
-
-App::route("GET", "/", function () {
-	App::redirect("/foo");
-});
-
-App::route("GET", "/foo", function () {
-	App::json((object) []);
-});
-
-App::fallback(function () {
-	App::response("<h1>Bar</h1>", 404);
-});
-
-App::error(function ($throwable) {
-	App::dd($throwable);
-});
-
-App::start();
-```
-
-## Templating
-
-```
-composer require twig/twig
-```
-
-```
-<?php
-
-use Tyea\Aviator\App as BaseApp;
-use Twig\Loader\FilesystemLoader as Loader;
-use Twig\Environment as Engine;
-
-class App extends BaseApp
-{
-	public static function view(string $template, array $data = [], int $code = 200, array $headers = []): void
-	{
-		$loader = new Loader(__APP__ . "/src/Views");
-		$environment = new Engine($loader);
-		$content = $environment->render($template, $data);
-		self::response($content, $code, $headers);
-	}
-}
-```
-
-```
-<?php
-
-require(__DIR__ . "/../vendor/autoload.php");
-
-App::route("GET", "/baz", function () {
-	App::view("baz.twig", ["qux" => "QUX"]);
-});
-
-App::start();
-```
+<<<
 
 ## Author
 

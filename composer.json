@@ -16,12 +16,20 @@
 		}
 	],
 	"require": {
+		"php": ">=7.2",
+		"ext-json": "*",
+		"ext-pdo": "*",
 		"symfony/http-foundation": "^5.3",
-		"symfony/routing": "^5.3"
+		"symfony/routing": "^5.3",
+		"twig/twig": "^3.3"
 	},
 	"autoload": {
 		"psr-4": {
 			"Tyea\\Aviator\\": "src/"
-		}
+		},
+		"files": [
+			"src/constants.php",
+			"src/functions.php"
+		]
 	}
 }

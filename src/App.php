@@ -71,6 +71,9 @@ class App
 		if (!$before) {
 			if (!App::$before) {
 				App::$before = function () {
+					if (App::request()->headers->get("Content-Type") == "application/json") {
+						App::request()->request->replace(App::request()->toArray());
+					}
 				};
 			}
 			return App::$before;

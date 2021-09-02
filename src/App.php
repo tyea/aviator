@@ -122,9 +122,9 @@ class App
 		if (!$error) {
 			if (!App::$error) {
 				App::$error = function (Exception $exception) {
-				    if (env("DEBUG", false)) {
-				        dd($exception);
-                    }
+					if (env("DEBUG", false)) {
+						dd($exception);
+					}
 					error_log($exception);
 					App::json((object) [], 500);
 				};

@@ -122,7 +122,7 @@ class App
 		if (!$error) {
 			if (!App::$error) {
 				App::$error = function (Exception $exception) {
-				    if (env("DATABASE_USERNAME", "false") == "true") {
+				    if (env("DEBUG", false)) {
 				        dd($exception);
                     }
 					error_log($exception);

@@ -2,7 +2,7 @@
 
 ## About
 
-Aviator is a Symfony based microframework for prototyping applications.
+Aviator is a Symfony based microframework for building prototypes, microsites, and hobbyist projects.
 
 ## Installation
 
@@ -10,39 +10,66 @@ Aviator is a Symfony based microframework for prototyping applications.
 composer require tyea/aviator
 ```
 
-## Ethos
-
-<<<
-
 ## Features
 
+* Config - `env()`
 * Requests - `App::request()`
 * Responses - `App::response()`, `App::redirect()`, and `App::json()`
 * Routing - `App::route()`, `App::fallback()`, and `App::start()`
-* Error Handling - `App::error()`
 * Hooks - `App::before()`
-* Config - `env()`
-* Validation <<<
-* Database
-    * Insert - `Db::insert()`
-    * Select - `Db::row()`, `Db::column()`, `Db::rows()`, `Db::columns()`, and `Db::map()`
-    * Delete - `Db::update()`, and `Db::modify()`
-    * Delete - `Db::delete()`, and `Db::modify()`
-    * Execute - `Db::execute()`
-    * Migrations - `migrate()`
-* Emails <<<
-* Templating <<<
+* Error Handling - `App::error()`
 * Sessions - `App::session()`
-* Dates & Times - `now()`, `MYSQL_DATE`, `MYSQL_TIME`, and `MYSQL_DATETIME`
+* Templating - `render()`
 * Debugging - `dd()`
 
 ## Example
 
-<<<
+```
+<?php
+
+use Tyea\Aviator\App;
+
+App::before(function () {
+    $_ENV["DEBUG"] = true;
+    $_ENV["TEMPLATES_DIRECTORY"] = __DIR__ . "/../src/Templates";
+    App::session()->start();
+});
+
+App::route("GET", "/", function () {
+    $redirect = App::request()->query->get("redirect");
+    if ($redirect) {
+        App::redirect($redirect);
+    }
+    App::response(render("home.twig"));
+});
+
+App::route("GET", "/me", function () {
+    $me = App::session()->get("user");
+    if (!$me) {
+        App::json((object) [], 404);
+    }
+    App::json($me);
+});
+
+App::fallback(function () {
+    App::response(render("fallback.twig));
+});
+
+App::error(function (Exception $exception) {
+    if (env("DEBUG", false)) {
+        dd($exception);
+    }
+    error_log($exception);
+    App::response(render("error.twig))
+});
+
+App::start();
+```
 
 ## Gotchas
 
-<<<
+* Aviator responses call `die()` as soon as they have been sent
+* Aviator relies upon certain `$_ENV` variables to be set in order to use `render()`
 
 ## Author
 

@@ -26,9 +26,6 @@
 	"autoload": {
 		"psr-4": {
 			"Tyea\\Aviator\\": "src/"
-		},
-		"files": [
-			"src/bootstrap.php"
-		]
+		}
 	}
 }

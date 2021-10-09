@@ -7,7 +7,7 @@
 		"microframework",
 		"prototypes",
 		"microsites",
-		"hobbyist"
+		"hobbyist projects"
 	],
 	"homepage": "https://github.com/tyea/aviator",
 	"license": "MIT",
@@ -19,13 +19,16 @@
 	],
 	"require": {
 		"symfony/http-foundation": "^5.3",
-		"symfony/routing": "^5.3",
-		"twig/twig": "^3.3",
-		"swiftmailer/swiftmailer": "^6.2"
+		"symfony/validator": "^5.3"
 	},
 	"autoload": {
 		"psr-4": {
 			"Tyea\\Aviator\\": "src/"
-		}
+		},
+		"files": [
+			"src/constants.php",
+			"src/globals.php",
+			"src/functions.php"
+		]
 	}
 }

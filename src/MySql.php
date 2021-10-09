@@ -6,7 +6,7 @@ use Pdo;
 use PdoStatement;
 use Exception;
 
-class Db
+class MySql
 {
 	private function __construct()
 	{
@@ -19,28 +19,28 @@ class Db
 
 	public static function configure(string $dsn, string $username, string $password = null, array $options = []): void
 	{
-		Db::$dsn = $dsn;
-		Db::$username = $username;
-		Db::$password = $password;
-		Db::$options = $options;
+		MySql::$dsn = $dsn;
+		MySql::$username = $username;
+		MySql::$password = $password;
+		MySql::$options = $options;
 	}
 
 	private static $pdo;
 
 	private static function pdo(): Pdo
 	{
-		if (!Db::$pdo) {
-			if (!Db::$dsn || !Db::$username) {
+		if (!MySql::$pdo) {
+			if (!MySql::$dsn || !MySql::$username) {
 				throw new Exception();
 			}
-			Db::$pdo = new Pdo(Db::$dsn, Db::$username, Db::$password, Db::$options);
+			MySql::$pdo = new Pdo(MySql::$dsn, MySql::$username, MySql::$password, MySql::$options);
 		}
-		return Db::$pdo;
+		return MySql::$pdo;
 	}
 
 	public static function execute(string $query, array $params = []): PdoStatement
 	{
-		$statement = Db::pdo()->prepare($query);
+		$statement = MySql::pdo()->prepare($query);
 		$statement->execute($params);
 		return $statement;
 	}
@@ -62,31 +62,31 @@ class Db
 			implode(", ", $columns),
 			implode(", ", array_fill(0, count($columns), "?"))
 		);
-		Db::execute($query, $params);
-		return Db::pdo()->lastInsertId() ?: null;
+		MySql::execute($query, $params);
+		return MySql::pdo()->lastInsertId() ?: null;
 	}
 
 	public static function row(string $query, array $params = []): ?array
 	{
-		$rows = Db::rows($query, $params);
+		$rows = MySql::rows($query, $params);
 		return $rows[0] ?? null;
 	}
 
 	public static function column(string $query, array $params = [])
 	{
-		$columns = Db::columns($query, $params);
+		$columns = MySql::columns($query, $params);
 		return $columns[0] ?? null;
 	}
 
 	public static function rows(string $query, array $params = []): array
 	{
-		$statement = Db::execute($query, $params);
+		$statement = MySql::execute($query, $params);
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	public static function columns(string $query, array $params = []): array
 	{
-		$statement = Db::execute($query, $params);
+		$statement = MySql::execute($query, $params);
 		$rows = $statement->fetchAll(PDO::FETCH_NUM);
 		$columns = [];
 		foreach ($rows as $row) {
@@ -97,7 +97,7 @@ class Db
 
 	public static function map(string $query, array $params = []): array
 	{
-		$statement = Db::execute($query, $params);
+		$statement = MySql::execute($query, $params);
 		$rows = $statement->fetchAll(PDO::FETCH_NUM);
 		$map = [];
 		foreach ($rows as $row) {
@@ -128,7 +128,7 @@ class Db
 			implode(" = ?, ", $columns) . " = ?"
 		);
 		$params[] = $id;
-		Db::execute($query, $params);
+		MySql::execute($query, $params);
 	}
 
 	public static function delete(string $table, array $row): void
@@ -147,12 +147,12 @@ class Db
 			"DELETE FROM `%s` WHERE `id` = ?;",
 			$table
 		);
-		Db::execute($query, [$id]);
+		MySql::execute($query, [$id]);
 	}
 
 	public static function modify(string $query, array $params = []): int
 	{
-		$statement = Db::execute($query, $params);
+		$statement = MySql::execute($query, $params);
 		return $statement->rowCount();
 	}
 }

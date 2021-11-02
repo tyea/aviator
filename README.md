@@ -12,18 +12,19 @@ composer require tyea/aviator
 
 ## Features
 
-* Requests - `Http::request()`
-* Responses - `Http::response()`, `Http::redirect()`, and `Http::json()`
-* Sessions - `Http::session()`
+* Environment Variables - `env()`
+* Requests - `request()`
+* Sessions - `session()`
+* Validation - `validate()`
+* Responses - `response()`
 * Debugging - `dd()`
-* Config - `$_CONFIG` and `config()`
-* Database - `MySql::configure()`, `MySql::execute()`, `MySql::insert()`, `MySql::row()`, `MySql::rows()`, `MySql::column()`, `MySql::columns()`, `MySql::map()`, `MySql::update()`, `MySql::delete()`, and `MySql::modify()`
+* MySQL - `MySql::configure()`, `MySql::execute()`, `MySql::insert()`, `MySql::row()`, `MySql::rows()`, `MySql::column()`, `MySql::columns()`, `MySql::map()`, `MySql::update()`, `MySql::delete()`, and `MySql::modify()`
 * DateTimes - `now()`, `MYSQL_DATE`, `MYSQL_TIME`, and `MYSQL_DATETIME`
-* Validation - `Validator::validate()`
+* Constraints - `MySqlExists` and `MySqlNotExists`
+* Curl - `curl()`
 
 ## Todo
 
-* Curl
 * Redis
 
 ## Author

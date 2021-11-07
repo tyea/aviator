@@ -1,12 +1,19 @@
 <?php
 
+use Tyea\Aviator\Registry;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Request as RequestFactory;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
+use Tyea\Aviator\CollectionFactory;
 use Symfony\Component\Validator\Validation as ValidatorFactory;
-use Tyea\Aviator\Constraints\CollectionFactory;
 use Symfony\Component\PropertyAccess\PropertyAccess as PropertyAccessorFactory;
-use Tyea\Aviator\ResponseFactory;
+use Tyea\Aviator\Response;
+use Tyea\Aviator\MySql;
+use DateTimeZone as DateTimeTimeZone;
+use Tyea\Aviator\Smtp;
 use Symfony\Component\HttpClient\CurlHttpClient as Curl;
+use Tyea\Aviator\Redis;
 
 function env(string $key, $default = null)
 {
@@ -15,18 +22,28 @@ function env(string $key, $default = null)
 
 function request(): Request
 {
-	return RequestFactory::createFromGlobals();
-
+	$request = Registry::get("REQUEST");
+	if (!$request) {
+		$request = RequestFactory::createFromGlobals();
+		Registry::set("REQUEST", $request);
+	}
+	return $request;
 }
-function session(): Session
+
+function session(array $options = []): Session
 {
-	return new Session();
+	$session = Registry::get("SESSION");
+	if (!$session) {
+		$session = new Session(new NativeSessionStorage($options));
+		Registry::set("SESSION", $session);
+	}
+	return $session;
 }
 
-function validate(array $data, array $rules, bool $missing = false, bool $extra = false): array
+function validate(array $data, array $constraints, bool $allowMissingFields = false, bool $allowExtraFields = false): array
 {
+	$collection = CollectionFactory::createFromArray($constraints, $allowMissingFields, $allowExtraFields);
 	$validator = ValidatorFactory::createValidator();
-	$collection = CollectionFactory::createFromArray($rules, $missing, $extra);
 	$violations = $validator->validate($data, $collection);
 	$errors = [];
 	if ($violations) {
@@ -36,29 +53,57 @@ function validate(array $data, array $rules, bool $missing = false, bool $extra 
 		}
 	}
 	return $errors;
-	
 }
 
-function response(): ResponseFactory
+function response(): Response
 {
-	return new ResponseFactory();
+	return new Response();
 }
 
 function dd($expression): void
 {
 	ob_start();
 	var_dump($expression);
-	$output = ob_get_clean();
-	$content = "<pre>" . htmlspecialchars($output, ENT_COMPAT, "UTF-8") . "</pre>";
-	response()->raw($content, 500);
+	$content = ob_get_clean();
+	response()->raw($content, 500, ["Content-Type" => "text/plain"]);
 }
 
-function now(): DateTime
+function mysql(): MySql
 {
-	return new DateTime("now", new DateTimeZone("UTC"));
+	$mysql = Registry::get("MYSQL");
+	if (!$mysql) {
+		$mysql = new MySql();
+		Registry::set("MYSQL", $mysql);
+	}
+	return $mysql;
+}
+
+function now(string $timeZone = "UTC"): DateTime
+{
+	return new DateTime("now", new DateTimeTimeZone($timeZone));
+}
+
+function smtp(): Smtp
+{
+	$smtp = Registry::get("SMTP");
+	if (!$smtp) {
+		$smtp = new Smtp();
+		Registry::set("SMTP", $smtp);
+	}
+	return $smtp;
 }
 
 function curl(array $options = []): Curl
 {
 	return new Curl($options);
+}
+
+function redis(): Redis
+{
+	$redis = Registry::get("REDIS");
+	if (!$redis) {
+		$redis = new Redis();
+		Registry::set("REDIS", $redis);
+	}
+	return $redis;
 }

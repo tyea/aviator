@@ -14,12 +14,11 @@ class MySqlExistsValidator extends ConstraintValidator
         	return;
         }
 		$query = sprintf(
-			"SELECT COUNT(`%s`) FROM `%s` WHERE `%s` = ?;",
-			$constraint->column,
+			"SELECT COUNT(id) FROM `%s` WHERE `%s` = ?;",
 			$constraint->table,
 			$constraint->column
 		);
-	    $count = MySql::row($query, [$value]);
+	    $count = mysql()->column($query, [$value]);
 	    if (!$count) {
 	    	$this->context->buildViolation($constraint->message)->addViolation();
 	    }

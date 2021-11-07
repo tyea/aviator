@@ -6,7 +6,7 @@ use Symfony\Component\Validator\Constraint;
 
 class MySqlNotExists extends Constraint
 {
-	public $message = "This field is invalid.";
+	public $message = "This value is in use.";
 	public $table = "foos";
 	public $column = "id";
 }

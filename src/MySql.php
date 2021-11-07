@@ -8,44 +8,37 @@ use Exception;
 
 class MySql
 {
-	private function __construct()
+	private $dsn;
+	private $username;
+	private $password;
+	private $options;
+
+	public function configure(string $dsn, string $username, string $password, array $options = []): void
 	{
+		$this->dsn = $dsn;
+		$this->username = $username;
+		$this->password = $password;
+		$this->options = $options;
 	}
 
-	private static $dsn;
-	private static $username;
-	private static $password;
-	private static $options;
+	private $pdo;
 
-	public static function configure(string $dsn, string $username, string $password = null, array $options = []): void
+	public function pdo(): Pdo
 	{
-		MySql::$dsn = $dsn;
-		MySql::$username = $username;
-		MySql::$password = $password;
-		MySql::$options = $options;
-	}
-
-	private static $pdo;
-
-	private static function pdo(): Pdo
-	{
-		if (!MySql::$pdo) {
-			if (!MySql::$dsn || !MySql::$username) {
-				throw new Exception();
-			}
-			MySql::$pdo = new Pdo(MySql::$dsn, MySql::$username, MySql::$password, MySql::$options);
+		if (!$this->pdo) {
+			$this->pdo = new Pdo($this->dsn, $this->username, $this->password, $this->options);
 		}
-		return MySql::$pdo;
+		return $this->pdo;
 	}
 
-	public static function execute(string $query, array $params = []): PdoStatement
+	public function execute(string $query, array $params = []): PdoStatement
 	{
-		$statement = MySql::pdo()->prepare($query);
+		$statement = $this->pdo()->prepare($query);
 		$statement->execute($params);
 		return $statement;
 	}
 
-	public static function insert(string $table, array $row): ?int
+	public function insert(string $table, array $row): ?int
 	{
 		$columns = [];
 		$params = [];
@@ -62,32 +55,32 @@ class MySql
 			implode(", ", $columns),
 			implode(", ", array_fill(0, count($columns), "?"))
 		);
-		MySql::execute($query, $params);
-		return MySql::pdo()->lastInsertId() ?: null;
+		$this->execute($query, $params);
+		return $this->pdo()->lastInsertId() ?: null;
 	}
 
-	public static function row(string $query, array $params = []): ?array
+	public function row(string $query, array $params = []): ?array
 	{
-		$rows = MySql::rows($query, $params);
+		$rows = $this->rows($query, $params);
 		return $rows[0] ?? null;
 	}
 
-	public static function column(string $query, array $params = [])
+	public function column(string $query, array $params = [])
 	{
-		$columns = MySql::columns($query, $params);
+		$columns = $this->columns($query, $params);
 		return $columns[0] ?? null;
 	}
 
-	public static function rows(string $query, array $params = []): array
+	public function rows(string $query, array $params = []): array
 	{
-		$statement = MySql::execute($query, $params);
-		return $statement->fetchAll(PDO::FETCH_ASSOC);
+		$statement = $this->execute($query, $params);
+		return $statement->fetchAll(Pdo::FETCH_ASSOC);
 	}
 
-	public static function columns(string $query, array $params = []): array
+	public function columns(string $query, array $params = []): array
 	{
-		$statement = MySql::execute($query, $params);
-		$rows = $statement->fetchAll(PDO::FETCH_NUM);
+		$statement = $this->execute($query, $params);
+		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
 		$columns = [];
 		foreach ($rows as $row) {
 			$columns[] = $row[0];
@@ -95,10 +88,10 @@ class MySql
 		return $columns;
 	}
 
-	public static function map(string $query, array $params = []): array
+	public function map(string $query, array $params = []): array
 	{
-		$statement = MySql::execute($query, $params);
-		$rows = $statement->fetchAll(PDO::FETCH_NUM);
+		$statement = $this->execute($query, $params);
+		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
 		$map = [];
 		foreach ($rows as $row) {
 			$map[$row[0]] = $row[1];
@@ -106,7 +99,7 @@ class MySql
 		return $map;
 	}
 
-	public static function update(string $table, array $row): void
+	public function update(string $table, array $row): void
 	{
 		$columns = [];
 		$params = [];
@@ -128,10 +121,10 @@ class MySql
 			implode(" = ?, ", $columns) . " = ?"
 		);
 		$params[] = $id;
-		MySql::execute($query, $params);
+		$this->execute($query, $params);
 	}
 
-	public static function delete(string $table, array $row): void
+	public function delete(string $table, array $row): void
 	{
 		$id = null;
 		foreach ($row as $column => $value) {
@@ -147,12 +140,12 @@ class MySql
 			"DELETE FROM `%s` WHERE `id` = ?;",
 			$table
 		);
-		MySql::execute($query, [$id]);
+		$this->execute($query, [$id]);
 	}
 
-	public static function modify(string $query, array $params = []): int
+	public function modify(string $query, array $params = []): int
 	{
-		$statement = MySql::execute($query, $params);
+		$statement = $this->execute($query, $params);
 		return $statement->rowCount();
 	}
 }

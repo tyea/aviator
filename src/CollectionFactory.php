@@ -11,15 +11,12 @@ class CollectionFactory
 	{
 	}
 
-	public static function createFromArray(array $encodedConstraints, bool $allowMissingFields, bool $allowExtraFields): Collection
+	public static function createFromArray(array $constraints, bool $allowMissingFields, bool $allowExtraFields): Collection
 	{
 		$fields = [];
-		foreach ($encodedConstraints as $field => $encodedFieldConstraints) {
+		foreach ($constraints as $field => $fieldConstraints) {
 			$constraints = [];
-			foreach ($encodedFieldConstraints as $encodedConstraint) {
-				@list($constraint, $queryString) = explode("?", $encodedConstraint, 2);
-				$options = [];
-				parse_str($queryString ?? "", $options);
+			foreach ($fieldConstraints as $constraint => $options) {
 				$constraints[] = new $constraint($options);
 			}
 			$fields[$field] = new Sequentially(["constraints" => $constraints]);

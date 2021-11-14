@@ -24,7 +24,7 @@ class Response
 		die();
 	}
 
-	function json($data, int $code = 200, array $headers = []): void
+	function json(mixed $data, int $code = 200, array $headers = []): void
 	{
 		$response = new JsonResponse($data, $code, $headers);
 		$response->prepare(request());

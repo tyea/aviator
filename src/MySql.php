@@ -65,7 +65,7 @@ class MySql
 		return $rows[0] ?? null;
 	}
 
-	public function column(string $query, array $params = [])
+	public function column(string $query, array $params = []): mixed
 	{
 		$columns = $this->columns($query, $params);
 		return $columns[0] ?? null;

@@ -14,8 +14,9 @@ use DateTimeZone as DateTimeTimeZone;
 use Tyea\Aviator\Smtp;
 use Symfony\Component\HttpClient\CurlHttpClient as Curl;
 use Tyea\Aviator\Redis;
+use Tyea\Aviator\Template;
 
-function env(string $key, $default = null)
+function env(string $key, mixed $default = null): mixed
 {
 	return $_ENV[$key] ?? $default;
 }
@@ -60,7 +61,7 @@ function response(): Response
 	return new Response();
 }
 
-function dd($expression): void
+function dd(mixed $expression): void
 {
 	ob_start();
 	var_dump($expression);
@@ -106,4 +107,14 @@ function redis(): Redis
 		Registry::set("REDIS", $redis);
 	}
 	return $redis;
+}
+
+function template(): Template
+{
+	$template = Registry::get("TEMPLATE");
+	if (!$template) {
+		$template = new Template();
+		Registry::set("TEMPLATE", $template);
+	}
+	return $template;
 }

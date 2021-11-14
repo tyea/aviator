@@ -2,6 +2,7 @@
 
 namespace Tyea\Aviator;
 
+use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Validator\Constraints\Sequentially;
 
@@ -17,7 +18,7 @@ class CollectionFactory
 		foreach ($constraints as $field => $fieldConstraints) {
 			$constraints = [];
 			foreach ($fieldConstraints as $constraint => $options) {
-				$constraints[] = new $constraint($options);
+				$constraints[] = CollectionFactory::createConstraint($constraint, $options);
 			}
 			$fields[$field] = new Sequentially(["constraints" => $constraints]);
 		}
@@ -27,5 +28,20 @@ class CollectionFactory
 			"allowExtraFields" => $allowExtraFields
 		];
 		return new Collection($options);
+	}
+
+	private static function createConstraint(string $constraint, array $options): Constraint
+	{
+		$prefixes = [
+			"Symfony\\Component\\Validator\\Constraints",
+			"Tyea\\Aviator\\Constraints",
+		];
+		foreach ($prefixes as $prefix) {
+			$class = $prefix . "\\" . $constraint;
+			if (class_exists($class)) {
+				return new $class($options);
+			}
+		}
+		return new $class($options);
 	}
 }

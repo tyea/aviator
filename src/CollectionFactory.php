@@ -32,16 +32,19 @@ class CollectionFactory
 
 	private static function createConstraint(string $constraint, array $options): Constraint
 	{
+		if (!str_starts_with($constraint, "\\")) {
+			$constraint = "\\" . $constraint;
+		}
 		$prefixes = [
-			"Symfony\\Component\\Validator\\Constraints",
-			"Tyea\\Aviator\\Constraints",
+			"\\Symfony\\Component\\Validator\\Constraints",
+			"\\Tyea\\Aviator\\Constraints",
 		];
 		foreach ($prefixes as $prefix) {
-			$class = $prefix . "\\" . $constraint;
+			$class = $prefix . $constraint;
 			if (class_exists($class)) {
 				return new $class($options);
 			}
 		}
-		return new $class($options);
+		return new $constraint($options);
 	}
 }

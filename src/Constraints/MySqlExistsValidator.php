@@ -18,7 +18,7 @@ class MySqlExistsValidator extends ConstraintValidator
 			$constraint->table,
 			$constraint->column
 		);
-		$count = mysql()->column($query, [$value]);
+		$count = mysql()->value($query, [$value]);
 		if (!$count) {
 			$this->context->buildViolation($constraint->message)->addViolation();
 		}

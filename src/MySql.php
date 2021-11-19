@@ -38,7 +38,13 @@ class MySql
 		return $statement;
 	}
 
-	public function insert(string $table, array $row): ?int
+	public function insert(string $query, array $params = []): ?int
+	{
+		$this->execute($query, $params);
+		return $this->pdo()->lastInsertId() ?: null;
+	}
+
+	public function create(string $table, array $row): array
 	{
 		$columns = [];
 		$params = [];
@@ -55,20 +61,11 @@ class MySql
 			implode(", ", $columns),
 			implode(", ", array_fill(0, count($columns), "?"))
 		);
-		$this->execute($query, $params);
-		return $this->pdo()->lastInsertId() ?: null;
-	}
-
-	public function row(string $query, array $params = []): ?array
-	{
-		$rows = $this->rows($query, $params);
-		return $rows[0] ?? null;
-	}
-
-	public function column(string $query, array $params = []): mixed
-	{
-		$columns = $this->columns($query, $params);
-		return $columns[0] ?? null;
+		$id = $this->insert($query, $params);
+		if (!$id) {
+			throw new Exception();
+		}
+		return $this->find($table, $id);
 	}
 
 	public function rows(string $query, array $params = []): array
@@ -77,15 +74,40 @@ class MySql
 		return $statement->fetchAll(Pdo::FETCH_ASSOC);
 	}
 
-	public function columns(string $query, array $params = []): array
+	public function row(string $query, array $params = []): ?array
+	{
+		$rows = $this->rows($query, $params);
+		return $rows[0] ?? null;
+	}
+
+	public function find(string $table, int $id): array
+	{
+		$query = sprintf(
+			"SELECT * FROM `%s` WHERE `id` = ?;",
+			$table
+		);
+		$row = $this->row($query, [$id]);
+		if (!$row) {
+			throw new Exception();
+		}
+		return $row;
+	}
+
+	public function column(string $query, array $params = []): array
 	{
 		$statement = $this->execute($query, $params);
 		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
-		$columns = [];
+		$column = [];
 		foreach ($rows as $row) {
-			$columns[] = $row[0];
+			$column[] = $row[0];
 		}
-		return $columns;
+		return $column;
+	}
+
+	public function value(string $query, array $params = []): mixed
+	{
+		$column = $this->column($query, $params);
+		return $column[0] ?? null;
 	}
 
 	public function map(string $query, array $params = []): array
@@ -99,7 +121,13 @@ class MySql
 		return $map;
 	}
 
-	public function update(string $table, array $row): void
+	public function modify(string $query, array $params = []): int
+	{
+		$statement = $this->execute($query, $params);
+		return $statement->rowCount();
+	}
+
+	public function update(string $table, array $row): array
 	{
 		$columns = [];
 		$params = [];
@@ -121,7 +149,8 @@ class MySql
 			implode(" = ?, ", $columns) . " = ?"
 		);
 		$params[] = $id;
-		$this->execute($query, $params);
+		$this->modify($query, $params);
+		return $this->find($table, $id);
 	}
 
 	public function delete(string $table, array $row): void
@@ -140,12 +169,6 @@ class MySql
 			"DELETE FROM `%s` WHERE `id` = ?;",
 			$table
 		);
-		$this->execute($query, [$id]);
-	}
-
-	public function modify(string $query, array $params = []): int
-	{
-		$statement = $this->execute($query, $params);
-		return $statement->rowCount();
+		$this->modify($query, [$id]);
 	}
 }

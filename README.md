@@ -17,16 +17,17 @@ composer require tyea/aviator
 ## Features
 
 * Environment variables - `env()`
-* Requests and responses - `request()` and `response()`
+* Requests - `request()`
+* Responses - `response()->raw()`, `response()->redirect()`, and `response()->json()`
 * Sessions - `session()`
 * Validation - `validate()`
 * Debugging - `dd()`
-* MySQL - `mysql()`
+* MySQL - `mysql()->configure()`, `mysql()->create()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->find()`, `mysql()->modify()`, `mysql()->update()`, `mysql()->delete()`
 * DateTimes - `now()`, `MYSQL_DATETIME`, `MYSQL_DATE`, and `MYSQL_TIME`
-* SMTP - `smtp()`
+* SMTP - `smtp()->configure()` and `smtp()->send()`
+* Templating - `template()->configure()` and `template()->render()`
 * Curl - `curl()`
-* Redis - `redis()`
-* Templating - `template()`
+* Redis - `redis()->configure()` and `redis()->command()`
 
 ## Author
 

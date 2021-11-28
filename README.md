@@ -18,14 +18,14 @@ composer require tyea/aviator
 
 * Environment variables - `env()`
 * Requests - `request()`
-* Responses - `response()->raw()`, `response()->redirect()`, and `response()->json()`
+* Responses - `response()->headers()`, `response()->raw()`, `response()->redirect()`, and `response()->json()`
 * Sessions - `session()`
 * Validation - `validate()`
 * Debugging - `dd()`
-* MySQL - `mysql()->configure()`, `mysql()->create()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->find()`, `mysql()->modify()`, `mysql()->update()`, `mysql()->delete()`
+* MySQL - `mysql()->configure()`, `mysql()->insert()`, `mysql()->create()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->find()`, `mysql()->modify()`, `mysql()->update()`, `mysql()->delete()`
 * DateTimes - `now()`, `MYSQL_DATETIME`, `MYSQL_DATE`, and `MYSQL_TIME`
 * SMTP - `smtp()->configure()` and `smtp()->send()`
-* Templating - `template()->configure()` and `template()->render()`
+* Templating - `template()->configure()`, `template()->data()`, and `template()->render()`
 * Curl - `curl()`
 * Redis - `redis()->configure()` and `redis()->command()`
 

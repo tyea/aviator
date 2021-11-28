@@ -58,7 +58,12 @@ function validate(array $data, array $constraints, bool $allowMissingFields = fa
 
 function response(): Response
 {
-	return new Response();
+	$response = Registry::get("RESPONSE");
+	if (!$response) {
+		$response = new Response();
+		Registry::set("RESPONSE", $response);
+	}
+	return $response;
 }
 
 function dd(mixed $expression): void

@@ -26,8 +26,16 @@ class Template
 		return $this->engine;
 	}
 
+	private $data = [];
+
+	public function data(string $key, mixed $value): void
+	{
+		$this->data[$key] = $value;
+	}
+
 	public function render(string $template, array $data = []): string
 	{
+		$data = array_merge($this->data, $data);
 		return $this->engine()->render($template, $data);
 	}
 }

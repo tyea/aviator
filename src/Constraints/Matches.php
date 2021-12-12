@@ -6,7 +6,6 @@ use Symfony\Component\Validator\Constraint;
 
 class Matches extends Constraint
 {
-	public $message = "This field does not match {{ label }}.";
+	public $message = "This value does not match.";
 	public $field = "";
-	public $label = "";
 }

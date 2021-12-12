@@ -14,12 +14,15 @@ class MySqlNotExistsValidator extends ConstraintValidator
 			return;
 		}
 		$query = sprintf(
-			"SELECT COUNT(`id`) FROM `%s` WHERE `id` != ? AND `%s` = ?;",
+			"SELECT COUNT(`id`) FROM `%s` WHERE `%s` = ? AND `id` != ?;",
 			$constraint->table,
-			$constraint->ignore,
 			$constraint->column
 		);
-		$count = mysql()->value($query, [$value]);
+		$params = [
+			$value,
+			$constraint->ignore
+		];
+		$count = mysql()->value($query, $params);
 		if ($count) {
 			$this->context->buildViolation($constraint->message)->addViolation();
 		}

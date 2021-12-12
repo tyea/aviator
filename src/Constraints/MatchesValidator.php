@@ -12,13 +12,10 @@ class MatchesValidator extends ConstraintValidator
 		if (is_null($value) || (is_string($value) && $value == "")) {
 			return;
 		}
-		$data = $this->context->getRoot()->getData();
-		$valid = $value == ($data[$constraint->field] ?? "");
-		if (!$valid) {
-			$this->context
-				->buildViolation($constraint->message)
-				->setParameter("{{ label }}", $constraint->label)
-				->addViolation();
+		$data = $this->context->getRoot();
+		$match = $data[$constraint->field] ?? null;
+		if ($value != $match) {
+			$this->context->buildViolation($constraint->message)->addViolation();
 		}
 	}
 }

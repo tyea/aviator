@@ -9,4 +9,5 @@ class MySqlNotExists extends Constraint
 	public $message = "This value is in use.";
 	public $table = "foos";
 	public $column = "id";
+	public $ignore = 0;
 }

@@ -14,8 +14,9 @@ class MySqlNotExistsValidator extends ConstraintValidator
 			return;
 		}
 		$query = sprintf(
-			"SELECT COUNT(`id`) FROM `%s` WHERE `%s` = ?;",
+			"SELECT COUNT(`id`) FROM `%s` WHERE `id` != ? AND `%s` = ?;",
 			$constraint->table,
+			$constraint->ignore,
 			$constraint->column
 		);
 		$count = mysql()->value($query, [$value]);

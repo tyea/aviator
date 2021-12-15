@@ -4,6 +4,7 @@ namespace Tyea\Aviator\Constraints;
 
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Constraint;
+use Exception;
 
 class MatchesValidator extends ConstraintValidator
 {
@@ -13,8 +14,10 @@ class MatchesValidator extends ConstraintValidator
 			return;
 		}
 		$data = $this->context->getRoot();
-		$match = $data[$constraint->field] ?? null;
-		if ($value != $match) {
+		if (!array_key_exists($constraint->field, $data)) {
+			throw new Exception();
+		}
+		if ($value != $data[$constraint->field]) {
 			$this->context->buildViolation($constraint->message)->addViolation();
 		}
 	}

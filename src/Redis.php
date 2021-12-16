@@ -25,10 +25,10 @@ class Redis
 
 	public function command(string $command, ...$arguments): mixed
 	{
-		$callback = [
+		$callable = [
 			$this->client(),
 			$command
 		];
-		return call_user_func_array($callback, $arguments);
+		return call_user_func_array($callable, $arguments);
 	}
 }

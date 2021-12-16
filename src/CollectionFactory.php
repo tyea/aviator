@@ -35,16 +35,16 @@ class CollectionFactory
 		if (!str_starts_with($constraint, "\\")) {
 			$constraint = "\\" . $constraint;
 		}
-		$prefixes = [
+		$namespaces = [
 			"\\Symfony\\Component\\Validator\\Constraints",
 			"\\Tyea\\Aviator\\Constraints",
+			"\\"
 		];
-		foreach ($prefixes as $prefix) {
-			$class = $prefix . $constraint;
+		foreach ($namespaces as $namespace) {
+			$class = $namespace . $constraint;
 			if (class_exists($class)) {
 				return new $class($options);
 			}
 		}
-		return new $constraint($options);
 	}
 }

@@ -1,6 +1,11 @@
 <?php
 
-use Tyea\Aviator\Registry;
+use Tyea\Aviator\Container;
+use Symfony\Component\Routing\RouteCollection as Routes;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RequestContext as Context;
+use Symfony\Component\Routing\Matcher\UrlMatcher as Matcher;
+use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Request as RequestFactory;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -23,20 +28,107 @@ function env(string $key, mixed $default = null): mixed
 
 function request(): Request
 {
-	$request = Registry::get("REQUEST");
+	$request = Container::get("REQUEST");
 	if (!$request) {
 		$request = RequestFactory::createFromGlobals();
-		Registry::set("REQUEST", $request);
+		Container::set("REQUEST", $request);
 	}
 	return $request;
 }
 
+function response(): Response
+{
+	$response = Container::get("RESPONSE");
+	if (!$response) {
+		$response = new Response();
+		Container::set("RESPONSE", $response);
+	}
+	return $response;
+}
+
+function dd(mixed $expression): void
+{
+	ob_start();
+	var_dump($expression);
+	$content = ob_get_clean();
+	response()->raw($content, 500, ["Content-Type" => "text/plain"]);
+}
+
+function template(): Template
+{
+	$template = Container::get("TEMPLATE");
+	if (!$template) {
+		$template = new Template();
+		Container::set("TEMPLATE", $template);
+	}
+	return $template;
+}
+
+function route(string|array $methods, string $path, callable $callable): void
+{
+	$routes = Container::get("ROUTES");
+	if (!$routes) {
+		$routes = new Routes();
+		Container::set("ROUTES", $routes);
+	}
+	if (!is_array($methods)) {
+		$methods = [$methods];
+	}
+	$name = implode(",", $methods) . "_" . $path;
+	$route = new Route($path);
+	$route->setMethods($methods);
+	$route->addDefaults(["_callable" => $callable]);
+	$routes->add($name, $route);
+}
+
+function fallback(callable $callable): void
+{
+	Container::set("FALLBACK", $callable);
+}
+
+function start(): void
+{
+	$context = new Context();
+	$context->fromRequest(request());
+	$matcher = new Matcher(Container::get("ROUTES"), $context);
+	try {
+		$match = $matcher->match(request()->getPathInfo());
+		$callable = $match["_callable"];
+		$args = array_filter(
+			$match,
+			function ($value, $key) {
+				return $key != "_callable";
+			},
+			ARRAY_FILTER_USE_BOTH
+		);
+	} catch (RoutingException $exception) {
+		$callable = Container::get("FALLBACK");
+		$args = [];
+	}
+	try {
+		call_user_func(Container::get("BEFORE"));
+		call_user_func_array($callable, $args);
+	} catch (Exception $exception) {
+		call_user_func_array(Container::get("ERROR"), [$exception]);
+	}
+}
+
+function before(callable $callable): void
+{
+	Container::set("BEFORE", $callable);
+}
+
+function error(callable $callable): void
+{
+	Container::set("ERROR", $callable);
+}
+
 function session(array $options = []): Session
 {
-	$session = Registry::get("SESSION");
+	$session = Container::get("SESSION");
 	if (!$session) {
 		$session = new Session(new NativeSessionStorage($options));
-		Registry::set("SESSION", $session);
+		Container::set("SESSION", $session);
 	}
 	return $session;
 }
@@ -56,45 +148,37 @@ function validate(array $data, array $constraints, bool $allowMissingFields = fa
 	return $errors;
 }
 
-function response(): Response
-{
-	$response = Registry::get("RESPONSE");
-	if (!$response) {
-		$response = new Response();
-		Registry::set("RESPONSE", $response);
-	}
-	return $response;
-}
-
-function dd(mixed $expression): void
-{
-	ob_start();
-	var_dump($expression);
-	$content = ob_get_clean();
-	response()->raw($content, 500, ["Content-Type" => "text/plain"]);
-}
-
-function mysql(): MySql
-{
-	$mysql = Registry::get("MYSQL");
-	if (!$mysql) {
-		$mysql = new MySql();
-		Registry::set("MYSQL", $mysql);
-	}
-	return $mysql;
-}
-
 function now(string $timeZone = "UTC"): DateTime
 {
 	return new DateTime("now", new DateTimeTimeZone($timeZone));
 }
 
+function mysql(): MySql
+{
+	$mysql = Container::get("MYSQL");
+	if (!$mysql) {
+		$mysql = new MySql();
+		Container::set("MYSQL", $mysql);
+	}
+	return $mysql;
+}
+
+function redis(): Redis
+{
+	$redis = Container::get("REDIS");
+	if (!$redis) {
+		$redis = new Redis();
+		Container::set("REDIS", $redis);
+	}
+	return $redis;
+}
+
 function smtp(): Smtp
 {
-	$smtp = Registry::get("SMTP");
+	$smtp = Container::get("SMTP");
 	if (!$smtp) {
 		$smtp = new Smtp();
-		Registry::set("SMTP", $smtp);
+		Container::set("SMTP", $smtp);
 	}
 	return $smtp;
 }
@@ -102,24 +186,4 @@ function smtp(): Smtp
 function curl(array $options = []): Curl
 {
 	return new Curl($options);
-}
-
-function redis(): Redis
-{
-	$redis = Registry::get("REDIS");
-	if (!$redis) {
-		$redis = new Redis();
-		Registry::set("REDIS", $redis);
-	}
-	return $redis;
-}
-
-function template(): Template
-{
-	$template = Registry::get("TEMPLATE");
-	if (!$template) {
-		$template = new Template();
-		Registry::set("TEMPLATE", $template);
-	}
-	return $template;
 }

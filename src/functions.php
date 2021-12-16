@@ -94,12 +94,14 @@ function start(): void
 	try {
 		$match = $matcher->match(request()->getPathInfo());
 		$callable = $match["_callable"];
-		$args = array_filter(
-			$match,
-			function ($value, $key) {
-				return $key != "_callable";
-			},
-			ARRAY_FILTER_USE_BOTH
+		$args = array_values(
+			array_filter(
+				$match,
+				function ($value, $key) {
+					return $key != "_callable";
+				},
+				ARRAY_FILTER_USE_BOTH
+			)
 		);
 	} catch (RoutingException $exception) {
 		$callable = Container::get("FALLBACK");

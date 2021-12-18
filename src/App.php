@@ -18,23 +18,16 @@ class App
 
 	public function __construct()
 	{
-		$this->before = function () {
-		};
 		$this->routes = new Routes();
-		$this->fallback = function () {
-			response()->raw("Not Found", 404, ["Content-Type" => "text/plain"]);
-		};
-		$this->error = function () {
-			response()->raw("Internal Server Error", 500, ["Content-Type" => "text/plain"]);
-		};
 	}
 
-	function before(callable $callable): void
+	function before(callable $callable): App
 	{
 		$this->before = $callable;
+		return $this;
 	}
 
-	function route(string|array $methods, string $path, callable $callable): void
+	function route(string|array $methods, string $path, callable $callable): App
 	{
 		if (!is_array($methods)) {
 			$methods = [$methods];
@@ -44,16 +37,19 @@ class App
 		$route->setMethods($methods);
 		$route->addDefaults(["_callable" => $callable]);
 		$this->routes->add($name, $route);
+		return $this;
 	}
 
-	function fallback(callable $callable): void
+	function fallback(callable $callable): App
 	{
 		$this->fallback = $callable;
+		return $this;
 	}
 
-	function error(callable $callable): void
+	function error(callable $callable): App
 	{
 		$this->error = $callable;
+		return $this;
 	}
 
 	function start(): void

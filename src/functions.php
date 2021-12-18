@@ -1,25 +1,20 @@
 <?php
 
 use Tyea\Aviator\Container;
-use Symfony\Component\Routing\RouteCollection as Routes;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RequestContext as Context;
-use Symfony\Component\Routing\Matcher\UrlMatcher as Matcher;
-use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Request as RequestFactory;
+use Tyea\Aviator\Response;
+use Tyea\Aviator\Template;
+use Tyea\Aviator\App;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Tyea\Aviator\CollectionFactory;
 use Symfony\Component\Validator\Validation as ValidatorFactory;
 use Symfony\Component\PropertyAccess\PropertyAccess as PropertyAccessorFactory;
-use Tyea\Aviator\Response;
-use Tyea\Aviator\MySql;
 use DateTimeZone as DateTimeTimeZone;
+use Tyea\Aviator\MySql;
 use Tyea\Aviator\Smtp;
 use Symfony\Component\HttpClient\CurlHttpClient as Curl;
-use Tyea\Aviator\Redis;
-use Tyea\Aviator\Template;
 
 function env(string $key, mixed $default = null): mixed
 {
@@ -64,65 +59,14 @@ function template(): Template
 	return $template;
 }
 
-function route(string|array $methods, string $path, callable $callable): void
+function app(): App
 {
-	$routes = Container::get("ROUTES");
-	if (!$routes) {
-		$routes = new Routes();
-		Container::set("ROUTES", $routes);
+	$app = Container::get("APP");
+	if (!$app) {
+		$app = new App();
+		Container::set("APP", $app);
 	}
-	if (!is_array($methods)) {
-		$methods = [$methods];
-	}
-	$name = implode(",", $methods) . "_" . $path;
-	$route = new Route($path);
-	$route->setMethods($methods);
-	$route->addDefaults(["_callable" => $callable]);
-	$routes->add($name, $route);
-}
-
-function fallback(callable $callable): void
-{
-	Container::set("FALLBACK", $callable);
-}
-
-function start(): void
-{
-	$context = new Context();
-	$context->fromRequest(request());
-	$matcher = new Matcher(Container::get("ROUTES"), $context);
-	try {
-		$match = $matcher->match(request()->getPathInfo());
-		$callable = $match["_callable"];
-		$args = array_values(
-			array_filter(
-				$match,
-				function ($value, $key) {
-					return $key != "_callable";
-				},
-				ARRAY_FILTER_USE_BOTH
-			)
-		);
-	} catch (RoutingException $exception) {
-		$callable = Container::get("FALLBACK");
-		$args = [];
-	}
-	try {
-		call_user_func(Container::get("BEFORE"));
-		call_user_func_array($callable, $args);
-	} catch (Exception $exception) {
-		call_user_func_array(Container::get("ERROR"), [$exception]);
-	}
-}
-
-function before(callable $callable): void
-{
-	Container::set("BEFORE", $callable);
-}
-
-function error(callable $callable): void
-{
-	Container::set("ERROR", $callable);
+	return $app;
 }
 
 function session(array $options = []): Session
@@ -163,16 +107,6 @@ function mysql(): MySql
 		Container::set("MYSQL", $mysql);
 	}
 	return $mysql;
-}
-
-function redis(): Redis
-{
-	$redis = Container::get("REDIS");
-	if (!$redis) {
-		$redis = new Redis();
-		Container::set("REDIS", $redis);
-	}
-	return $redis;
 }
 
 function smtp(): Smtp

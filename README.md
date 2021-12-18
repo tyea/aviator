@@ -21,16 +21,15 @@ composer require tyea/aviator
 * Responses - `response()->headers()`, `response()->raw()`, `response()->redirect()`, and `response()->json()`
 * Debugging - `dd()`
 * Templating - `template()->configure()`, `template()->data()`, and `template()->render()`
-* Routing - `route()`, `fallback()`, and `start()`
-* Hooks - `before()`
-* Error handling - `error()`
+* Routing - `app()->route()`, `app()->fallback()`, and `app()->start()`
+* Hooks - `app()->before()`
+* Error handling - `app()->error()`
 * Sessions - `session()`
 * Validation - `validate()`
 * DateTimes - `now()`
 * MySQL - `mysql()->configure()`, `mysql()->insert()`, `mysql()->create()`, `mysql()->rows()`, `mysql()->row
 ()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->find()`, `mysql()->modify()`, `mysql
 ()->update()`, `mysql()->delete()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
-* Redis - `redis()->configure()` and `redis()->command()`
 * SMTP - `smtp()->configure()` and `smtp()->send()`
 * Curl - `curl()`
 

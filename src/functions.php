@@ -1,6 +1,6 @@
 <?php
 
-use Tyea\Aviator\Container;
+use Tyea\Aviator\Globals;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Request as RequestFactory;
 use Tyea\Aviator\Response;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Tyea\Aviator\CollectionFactory;
 use Symfony\Component\Validator\Validation as ValidatorFactory;
 use Symfony\Component\PropertyAccess\PropertyAccess as PropertyAccessorFactory;
-use DateTimeZone as DateTimeTimeZone;
+use DateTimeZone as TimeZone;
 use Tyea\Aviator\MySql;
 use Tyea\Aviator\Smtp;
 use Symfony\Component\HttpClient\CurlHttpClient as Curl;
@@ -23,58 +23,55 @@ function env(string $key, mixed $default = null): mixed
 
 function request(): Request
 {
-	$request = Container::get("REQUEST");
+	$request = Globals::get("REQUEST");
 	if (!$request) {
 		$request = RequestFactory::createFromGlobals();
-		Container::set("REQUEST", $request);
+		Globals::set("REQUEST", $request);
 	}
 	return $request;
 }
 
 function response(): Response
 {
-	$response = Container::get("RESPONSE");
-	if (!$response) {
-		$response = new Response();
-		Container::set("RESPONSE", $response);
-	}
-	return $response;
+	return new Response();
 }
 
-function dd(mixed $expression): void
+function dd(mixed ...$vars): void
 {
 	ob_start();
-	var_dump($expression);
+	foreach ($vars as $var) {
+		var_dump($var);
+	}
 	$content = ob_get_clean();
 	response()->raw($content, 500, ["Content-Type" => "text/plain"]);
 }
 
 function template(): Template
 {
-	$template = Container::get("TEMPLATE");
+	$template = Globals::get("TEMPLATE");
 	if (!$template) {
 		$template = new Template();
-		Container::set("TEMPLATE", $template);
+		Globals::set("TEMPLATE", $template);
 	}
 	return $template;
 }
 
 function app(): App
 {
-	$app = Container::get("APP");
+	$app = Globals::get("APP");
 	if (!$app) {
 		$app = new App();
-		Container::set("APP", $app);
+		Globals::set("APP", $app);
 	}
 	return $app;
 }
 
 function session(array $options = []): Session
 {
-	$session = Container::get("SESSION");
+	$session = Globals::get("SESSION");
 	if (!$session) {
 		$session = new Session(new NativeSessionStorage($options));
-		Container::set("SESSION", $session);
+		Globals::set("SESSION", $session);
 	}
 	return $session;
 }
@@ -96,25 +93,25 @@ function validate(array $data, array $constraints, bool $allowMissingFields = fa
 
 function now(string $timeZone = "UTC"): DateTime
 {
-	return new DateTime("now", new DateTimeTimeZone($timeZone));
+	return new DateTime("now", new TimeZone($timeZone));
 }
 
 function mysql(): MySql
 {
-	$mysql = Container::get("MYSQL");
+	$mysql = Globals::get("MYSQL");
 	if (!$mysql) {
 		$mysql = new MySql();
-		Container::set("MYSQL", $mysql);
+		Globals::set("MYSQL", $mysql);
 	}
 	return $mysql;
 }
 
 function smtp(): Smtp
 {
-	$smtp = Container::get("SMTP");
+	$smtp = Globals::get("SMTP");
 	if (!$smtp) {
 		$smtp = new Smtp();
-		Container::set("SMTP", $smtp);
+		Globals::set("SMTP", $smtp);
 	}
 	return $smtp;
 }

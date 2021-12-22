@@ -12,63 +12,51 @@ use Exception;
 class App
 {
 	private $before;
-	private $routes;
-	private $fallback;
-	private $error;
 
-	public function __construct()
-	{
-		$this->routes = new Routes();
-	}
-
-	function before(callable $callable): App
+	function before(callable $callable): void
 	{
 		$this->before = $callable;
-		return $this;
 	}
 
-	function route(string|array $methods, string $path, callable $callable): App
+	private $routes;
+
+	function route(string $method, string $path, callable $callable): void
 	{
-		if (!is_array($methods)) {
-			$methods = [$methods];
+		if (!$this->routes) {
+			$this->routes = new Routes();
 		}
-		$name = implode(",", $methods) . "_" . $path;
 		$route = new Route($path);
-		$route->setMethods($methods);
+		$route->setMethods([$method]);
 		$route->addDefaults(["_callable" => $callable]);
+		$name = $method . "_" . $path;
 		$this->routes->add($name, $route);
-		return $this;
 	}
 
-	function fallback(callable $callable): App
+	private $fallback;
+
+	function fallback(callable $callable): void
 	{
 		$this->fallback = $callable;
-		return $this;
 	}
 
-	function error(callable $callable): App
+	private $error;
+
+	function error(callable $callable): void
 	{
 		$this->error = $callable;
-		return $this;
 	}
 
 	function start(): void
 	{
+		if (!$this->before || !$this->routes || !$this->fallback || !$this->error) {
+			throw new Exception();
+		}
 		$context = new Context();
 		$context->fromRequest(request());
 		$matcher = new Matcher($this->routes, $context);
 		try {
 			$match = $matcher->match(request()->getPathInfo());
-			$callable = $match["_callable"];
-			$args = array_values(
-				array_filter(
-					$match,
-					function ($value, $key) {
-						return $key != "_callable";
-					},
-					ARRAY_FILTER_USE_BOTH
-				)
-			);
+			list($callable, $args) = $this->parseMatch($match);
 		} catch (RoutingException $exception) {
 			$callable = $this->fallback;
 			$args = [];
@@ -79,5 +67,23 @@ class App
 		} catch (Exception $exception) {
 			call_user_func_array($this->error, [$exception]);
 		}
+	}
+
+	public function parseMatch(array $match): array
+	{
+		$callable = $match["_callable"];
+		$args = array_values(
+			array_filter(
+				$match,
+				function ($value, $key) {
+					return $key != "_callable";
+				},
+				ARRAY_FILTER_USE_BOTH
+			)
+		);
+		return [
+			$callable,
+			$args
+		];
 	}
 }

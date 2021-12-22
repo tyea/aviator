@@ -5,6 +5,7 @@ namespace Tyea\Aviator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Validator\Constraints\Sequentially;
+use Exception;
 
 class CollectionFactory
 {
@@ -30,7 +31,7 @@ class CollectionFactory
 		return new Collection($options);
 	}
 
-	private static function createConstraint(string $constraint, array $options): Constraint
+	public static function createConstraint(string $constraint, array $options): Constraint
 	{
 		if (!str_starts_with($constraint, "\\")) {
 			$constraint = "\\" . $constraint;
@@ -38,7 +39,7 @@ class CollectionFactory
 		$namespaces = [
 			"\\Symfony\\Component\\Validator\\Constraints",
 			"\\Tyea\\Aviator\\Constraints",
-			"\\"
+			""
 		];
 		foreach ($namespaces as $namespace) {
 			$class = $namespace . $constraint;
@@ -46,5 +47,6 @@ class CollectionFactory
 				return new $class($options);
 			}
 		}
+		throw new Exception();
 	}
 }

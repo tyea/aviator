@@ -18,9 +18,9 @@ composer require tyea/aviator
 
 * Environment variables - `env()`
 * Requests - `request()`
-* Responses - `response()->headers()`, `response()->raw()`, `response()->redirect()`, and `response()->json()`
+* Responses - `response()->raw()`, `response()->redirect()`, and `response()->json()`
 * Debugging - `dd()`
-* Templating - `template()->configure()`, `template()->data()`, and `template()->render()`
+* Templating - `template()->configure()` and `template()->render()`
 * Routing - `app()->route()`, `app()->fallback()`, and `app()->start()`
 * Hooks - `app()->before()`
 * Error handling - `app()->error()`

@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Tyea\Aviator\CollectionFactory;
 use Symfony\Component\Validator\Validation as ValidatorFactory;
 use Symfony\Component\PropertyAccess\PropertyAccess as PropertyAccessorFactory;
-use DateTimeZone as TimeZone;
+use DateTimeZone as DateTimeTimeZone;
 use Tyea\Aviator\MySql;
 use Tyea\Aviator\Redis;
 use Tyea\Aviator\Smtp;
@@ -94,7 +94,7 @@ function validate(array $data, array $constraints, bool $allowMissingFields = fa
 
 function now(string $timeZone = "UTC"): DateTime
 {
-	return new DateTime("now", new TimeZone($timeZone));
+	return new DateTime("now", new DateTimeTimeZone($timeZone));
 }
 
 function mysql(): MySql

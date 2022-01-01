@@ -31,7 +31,7 @@ class Template
 		$this->engine()->addGlobal($name, $value);
 	}
 
-	public function render(string $template, array $data): string
+	public function render(string $template, array $data = []): string
 	{
 		return $this->engine()->render($template, $data);
 	}

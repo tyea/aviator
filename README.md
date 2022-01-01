@@ -20,7 +20,7 @@ composer require tyea/aviator
 * Requests - `request()`
 * Responses - `response()->raw()`, `response()->redirect()`, and `response()->json()`
 * Debugging - `dd()`
-* Templating - `template()->configure()` and `template()->render()`
+* Templating - `template()->configure()`, `template()->global()`, and `template()->render()`
 * Routing - `app()->route()`, `app()->fallback()`, and `app()->start()`
 * Hooks - `app()->before()`
 * Error handling - `app()->error()`

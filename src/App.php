@@ -8,6 +8,7 @@ use Symfony\Component\Routing\RequestContext as Context;
 use Symfony\Component\Routing\Matcher\UrlMatcher as Matcher;
 use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingException;
 use Exception;
+use Throwable;
 
 class App
 {
@@ -64,8 +65,8 @@ class App
 		try {
 			call_user_func($this->before);
 			call_user_func_array($callable, $args);
-		} catch (Exception $exception) {
-			call_user_func_array($this->error, [$exception]);
+		} catch (Throwable $throwable) {
+			call_user_func_array($this->error, [$throwable]);
 		}
 	}
 

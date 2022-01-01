@@ -26,6 +26,11 @@ class Template
 		return $this->engine;
 	}
 
+	public function global(string $name, mixed $value): void
+	{
+		$this->engine()->addGlobal($name, $value);
+	}
+
 	public function render(string $template, array $data): string
 	{
 		return $this->engine()->render($template, $data);

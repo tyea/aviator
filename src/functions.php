@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Validation as ValidatorFactory;
 use Symfony\Component\PropertyAccess\PropertyAccess as PropertyAccessorFactory;
 use DateTimeZone as TimeZone;
 use Tyea\Aviator\MySql;
+use Tyea\Aviator\Redis;
 use Tyea\Aviator\Smtp;
 use Symfony\Component\HttpClient\CurlHttpClient as Curl;
 
@@ -104,6 +105,16 @@ function mysql(): MySql
 		Globals::set("MYSQL", $mysql);
 	}
 	return $mysql;
+}
+
+function redis(): Redis
+{
+	$redis = Globals::get("REDIS");
+	if (!$redis) {
+		$redis = new Redis();
+		Globals::set("REDIS", $redis);
+	}
+	return $redis;
 }
 
 function smtp(): Smtp

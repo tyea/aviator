@@ -31,20 +31,22 @@ class MySql
 		return $this->pdo;
 	}
 
-	public function execute(string $query, array $params = []): PdoStatement
+	private function statement(string $query, array $params = []): PdoStatement
 	{
 		$statement = $this->pdo()->prepare($query);
-		$statement->execute($params);
+		if (!$statement->execute($params)) {
+			throw new Exception();
+		}
 		return $statement;
 	}
 
-	public function insert(string $query, array $params = []): ?int
+	public function execute(string $query, array $params = []): int
 	{
-		$this->execute($query, $params);
-		return $this->pdo()->lastInsertId() ?: null;
+		$statement = $this->statement($query, $params);
+		return $statement->rowCount();
 	}
 
-	public function create(string $table, array $row): array
+	public function insert(string $table, array $row): int
 	{
 		$columns = [];
 		$params = [];
@@ -58,19 +60,16 @@ class MySql
 		$query = sprintf(
 			"INSERT INTO `%s` (%s) VALUES (%s);",
 			$table,
-			implode(", ", $columns),
+			"`" . implode("`, `", $columns) . "`",
 			implode(", ", array_fill(0, count($columns), "?"))
 		);
-		$id = $this->insert($query, $params);
-		if (!$id) {
-			throw new Exception();
-		}
-		return $this->find($table, $id);
+		$this->statement($query, $params);
+		return $this->pdo()->lastInsertId();
 	}
 
 	public function rows(string $query, array $params = []): array
 	{
-		$statement = $this->execute($query, $params);
+		$statement = $this->statement($query, $params);
 		return $statement->fetchAll(Pdo::FETCH_ASSOC);
 	}
 
@@ -80,22 +79,9 @@ class MySql
 		return $rows[0] ?? null;
 	}
 
-	public function find(string $table, int $id): array
-	{
-		$query = sprintf(
-			"SELECT * FROM `%s` WHERE `id` = ?;",
-			$table
-		);
-		$row = $this->row($query, [$id]);
-		if (!$row) {
-			throw new Exception();
-		}
-		return $row;
-	}
-
 	public function column(string $query, array $params = []): array
 	{
-		$statement = $this->execute($query, $params);
+		$statement = $this->statement($query, $params);
 		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
 		$column = [];
 		foreach ($rows as $row) {
@@ -112,7 +98,7 @@ class MySql
 
 	public function map(string $query, array $params = []): array
 	{
-		$statement = $this->execute($query, $params);
+		$statement = $this->statement($query, $params);
 		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
 		$map = [];
 		foreach ($rows as $row) {
@@ -121,19 +107,13 @@ class MySql
 		return $map;
 	}
 
-	public function modify(string $query, array $params = []): int
-	{
-		$statement = $this->execute($query, $params);
-		return $statement->rowCount();
-	}
-
-	public function update(string $table, array $row): array
+	public function update(string $table, array $row, string $primaryKey = "id"): void
 	{
 		$columns = [];
 		$params = [];
 		$id = null;
 		foreach ($row as $column => $value) {
-			if ($column == "id") {
+			if ($column == $primaryKey) {
 				$id = $value;
 				continue;
 			}
@@ -144,31 +124,22 @@ class MySql
 			throw new Exception();
 		}
 		$query = sprintf(
-			"UPDATE `%s` SET %s WHERE `id` = ?;",
+			"UPDATE `%s` SET %s WHERE `%s` = ?;",
 			$table,
-			implode(" = ?, ", $columns) . " = ?"
+			"`" . implode("` = ?, `", $columns) . "` = ?",
+			$primaryKey
 		);
 		$params[] = $id;
-		$this->modify($query, $params);
-		return $this->find($table, $id);
+		$this->statement($query, $params);
 	}
 
-	public function delete(string $table, array $row): void
+	public function begin(): void
 	{
-		$id = null;
-		foreach ($row as $column => $value) {
-			if ($column == "id") {
-				$id = $value;
-				break;
-			}
-		}
-		if (!$id) {
-			throw new Exception();
-		}
-		$query = sprintf(
-			"DELETE FROM `%s` WHERE `id` = ?;",
-			$table
-		);
-		$this->modify($query, [$id]);
+		$this->pdo()->beginTransaction();
+	}
+
+	public function end(): void
+	{
+		$this->pdo()->commit();
 	}
 }

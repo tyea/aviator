@@ -31,7 +31,7 @@ class CollectionFactory
 		return new Collection($options);
 	}
 
-	public static function createConstraint(string $constraint, array $options): Constraint
+	private static function createConstraint(string $constraint, array $options): Constraint
 	{
 		if (!str_starts_with($constraint, "\\")) {
 			$constraint = "\\" . $constraint;

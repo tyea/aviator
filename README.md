@@ -27,11 +27,8 @@ composer require tyea/aviator
 * Sessions - `session()`
 * Validation - `validate()`
 * DateTimes - `now()`
-* MySQL - `mysql()->configure()`, `mysql()->insert()`, `mysql()->create()`, `mysql()->rows()`, `mysql()->row
-()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->find()`, `mysql()->modify()`, `mysql
-()->update()`, `mysql()->delete()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
+* MySQL - `mysql()->configure()`, `mysql()->execute()`, `mysql()->insert()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->update()`, `mysql()->begin()`, `mysql()->end()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
 * Redis - `redis()->configure()` and `redis()->command()`
-* SMTP - `smtp()->configure()` and `smtp()->send()`
 * Curl - `curl()`
 
 ## Author

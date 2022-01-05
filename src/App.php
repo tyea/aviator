@@ -70,7 +70,7 @@ class App
 		}
 	}
 
-	public function parseMatch(array $match): array
+	private function parseMatch(array $match): array
 	{
 		$callable = $match["_callable"];
 		$args = array_values(

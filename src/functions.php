@@ -7,6 +7,7 @@ use Tyea\Aviator\Response;
 use Tyea\Aviator\Template;
 use Tyea\Aviator\App;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface as SessionStorage;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Tyea\Aviator\CollectionFactory;
 use Symfony\Component\Validator\Validation as ValidatorFactory;
@@ -14,7 +15,6 @@ use Symfony\Component\PropertyAccess\PropertyAccess as PropertyAccessorFactory;
 use DateTimeZone as DateTimeTimeZone;
 use Tyea\Aviator\MySql;
 use Tyea\Aviator\Redis;
-use Tyea\Aviator\Smtp;
 use Symfony\Component\HttpClient\CurlHttpClient as Curl;
 
 function env(string $key, mixed $default = null): mixed
@@ -67,11 +67,14 @@ function app(): App
 	return $app;
 }
 
-function session(array $options = []): Session
+function session(array $options = [], SessionStorage $sessionStorage = null): Session
 {
 	$session = Globals::get("SESSION");
 	if (!$session) {
-		$session = new Session(new NativeSessionStorage($options));
+		if (!$sessionStorage) {
+			$sessionStorage = new NativeSessionStorage($options);
+		}
+		$session = new Session($sessionStorage);
 		Globals::set("SESSION", $session);
 	}
 	return $session;
@@ -107,6 +110,36 @@ function mysql(): MySql
 	return $mysql;
 }
 
+function migrate(string $migrations): void
+{
+	$tables = mysql()->columns("SHOW TABLES;");
+	if (!in_array("migrations", $tables)) {
+		mysql()->execute("
+			CREATE TABLE `migrations` (
+				`id` BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+				`name` VARCHAR(255) NOT NULL,
+				`created_at` DATETIME NOT NULL,
+				PRIMARY KEY (`id`),
+				UNIQUE (`name`)
+			);
+		");
+	}
+	$files = glob($migrations);
+	sort($files);
+	foreach ($files as $file) {
+		$name = basename($file);
+		$count = mysql()->column("SELECT COUNT(`id`) FROM `migrations` WHERE `name` = ?;", [$name]);
+		if (!$count) {
+			$callable = require $file;
+			call_user_func($callable);
+			mysql()->insert("migrations", [
+				"name" => $name,
+				"created_at" => now()->format(MYSQL_DATETIME)
+			]);
+		}
+	}
+}
+
 function redis(): Redis
 {
 	$redis = Globals::get("REDIS");
@@ -115,16 +148,6 @@ function redis(): Redis
 		Globals::set("REDIS", $redis);
 	}
 	return $redis;
-}
-
-function smtp(): Smtp
-{
-	$smtp = Globals::get("SMTP");
-	if (!$smtp) {
-		$smtp = new Smtp();
-		Globals::set("SMTP", $smtp);
-	}
-	return $smtp;
 }
 
 function curl(array $options = []): Curl

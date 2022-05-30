@@ -112,7 +112,7 @@ function mysql(): MySql
 
 function migrate(string $migrations): void
 {
-	$tables = mysql()->columns("SHOW TABLES;");
+	$tables = mysql()->column("SHOW TABLES;");
 	if (!in_array("migrations", $tables)) {
 		mysql()->execute("
 			CREATE TABLE `migrations` (
@@ -128,7 +128,7 @@ function migrate(string $migrations): void
 	sort($files);
 	foreach ($files as $file) {
 		$name = basename($file);
-		$count = mysql()->column("SELECT COUNT(`id`) FROM `migrations` WHERE `name` = ?;", [$name]);
+		$count = mysql()->value("SELECT COUNT(`id`) FROM `migrations` WHERE `name` = ?;", [$name]);
 		if (!$count) {
 			$callable = require $file;
 			call_user_func($callable);

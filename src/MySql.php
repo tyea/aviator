@@ -31,7 +31,7 @@ class MySql
 		return $this->pdo;
 	}
 
-	private function statement(string $query, array $params = []): PdoStatement
+	private function execute(string $query, array $params = []): PdoStatement
 	{
 		$statement = $this->pdo()->prepare($query);
 		if (!$statement->execute($params)) {
@@ -40,36 +40,15 @@ class MySql
 		return $statement;
 	}
 
-	public function execute(string $query, array $params = []): int
+	public function insert(string $query, array $params = []): mixed
 	{
-		$statement = $this->statement($query, $params);
-		return $statement->rowCount();
-	}
-
-	public function insert(string $table, array $row): int
-	{
-		$columns = [];
-		$params = [];
-		foreach ($row as $column => $value) {
-			$columns[] = $column;
-			$params[] = $value;
-		}
-		if (!$columns) {
-			throw new Exception();
-		}
-		$query = sprintf(
-			"INSERT INTO `%s` (%s) VALUES (%s);",
-			$table,
-			"`" . implode("`, `", $columns) . "`",
-			implode(", ", array_fill(0, count($columns), "?"))
-		);
-		$this->statement($query, $params);
+		$this->execute($query, $params);
 		return $this->pdo()->lastInsertId();
 	}
 
 	public function rows(string $query, array $params = []): array
 	{
-		$statement = $this->statement($query, $params);
+		$statement = $this->execute($query, $params);
 		return $statement->fetchAll(Pdo::FETCH_ASSOC);
 	}
 
@@ -81,7 +60,7 @@ class MySql
 
 	public function column(string $query, array $params = []): array
 	{
-		$statement = $this->statement($query, $params);
+		$statement = $this->execute($query, $params);
 		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
 		$column = [];
 		foreach ($rows as $row) {
@@ -98,7 +77,7 @@ class MySql
 
 	public function map(string $query, array $params = []): array
 	{
-		$statement = $this->statement($query, $params);
+		$statement = $this->execute($query, $params);
 		$rows = $statement->fetchAll(Pdo::FETCH_NUM);
 		$map = [];
 		foreach ($rows as $row) {
@@ -107,39 +86,49 @@ class MySql
 		return $map;
 	}
 
-	public function update(string $table, array $row, string $primaryKey = "id"): void
+	public function update(string $query, array $params = []): int
 	{
-		$columns = [];
-		$params = [];
-		$id = null;
-		foreach ($row as $column => $value) {
-			if ($column == $primaryKey) {
-				$id = $value;
-				continue;
+		$statement = $this->execute($query, $params);
+		return $statement->rowCount();
+	}
+
+	public function delete(string $query, array $params = []): int
+	{
+		$statement = $this->execute($query, $params);
+		return $statement->rowCount();
+	}
+
+	public function migrate(string $migrations): void
+	{
+		$tables = mysql()->column("SHOW TABLES;");
+		if (!in_array("migrations", $tables)) {
+			mysql()->execute("
+			CREATE TABLE `migrations` (
+				`id` BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+				`name` VARCHAR(255) NOT NULL,
+				`created_at` DATETIME NOT NULL,
+				PRIMARY KEY (`id`),
+				UNIQUE (`name`)
+			);
+		");
+		}
+		$files = glob($migrations);
+		sort($files);
+		foreach ($files as $file) {
+			$name = basename($file);
+			$count = mysql()->value("SELECT COUNT(`id`) FROM `migrations` WHERE `name` = ?;", [$name]);
+			if (!$count) {
+				mysql()->execute(file_get_contents($file));
+				mysql()->table("migrations")->insert([
+					"name" => $name,
+					"created_at" => now()->format(MYSQL_DATETIME)
+				]);
 			}
-			$columns[] = $column;
-			$params[] = $value;
 		}
-		if (!$id || !$columns) {
-			throw new Exception();
-		}
-		$query = sprintf(
-			"UPDATE `%s` SET %s WHERE `%s` = ?;",
-			$table,
-			"`" . implode("` = ?, `", $columns) . "` = ?",
-			$primaryKey
-		);
-		$params[] = $id;
-		$this->statement($query, $params);
 	}
 
-	public function begin(): void
+	public function table(string $name, string $primaryKey = "id"): Table
 	{
-		$this->pdo()->beginTransaction();
-	}
-
-	public function end(): void
-	{
-		$this->pdo()->commit();
+		return new Table($name, $primaryKey);
 	}
 }

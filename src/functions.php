@@ -1,6 +1,6 @@
 <?php
 
-use Tyea\Aviator\Globals;
+use Tyea\Aviator\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Request as RequestFactory;
 use Tyea\Aviator\Response;
@@ -24,10 +24,10 @@ function env(string $key, mixed $default = null): mixed
 
 function request(): Request
 {
-	$request = Globals::get("REQUEST");
+	$request = Container::get("Request");
 	if (!$request) {
 		$request = RequestFactory::createFromGlobals();
-		Globals::set("REQUEST", $request);
+		Container::set("Request", $request);
 	}
 	return $request;
 }
@@ -49,33 +49,33 @@ function dd(mixed ...$vars): void
 
 function template(): Template
 {
-	$template = Globals::get("TEMPLATE");
+	$template = Container::get("Template");
 	if (!$template) {
 		$template = new Template();
-		Globals::set("TEMPLATE", $template);
+		Container::set("Template", $template);
 	}
 	return $template;
 }
 
 function app(): App
 {
-	$app = Globals::get("APP");
+	$app = Container::get("App");
 	if (!$app) {
 		$app = new App();
-		Globals::set("APP", $app);
+		Container::set("App", $app);
 	}
 	return $app;
 }
 
 function session(array $options = [], SessionStorage $sessionStorage = null): Session
 {
-	$session = Globals::get("SESSION");
+	$session = Container::get("Session");
 	if (!$session) {
 		if (!$sessionStorage) {
 			$sessionStorage = new NativeSessionStorage($options);
 		}
 		$session = new Session($sessionStorage);
-		Globals::set("SESSION", $session);
+		Container::set("Session", $session);
 	}
 	return $session;
 }
@@ -102,50 +102,20 @@ function now(string $timeZone = "UTC"): DateTime
 
 function mysql(): MySql
 {
-	$mysql = Globals::get("MYSQL");
+	$mysql = Container::get("MySql");
 	if (!$mysql) {
 		$mysql = new MySql();
-		Globals::set("MYSQL", $mysql);
+		Container::set("MySql", $mysql);
 	}
 	return $mysql;
 }
 
-function migrate(string $migrations): void
-{
-	$tables = mysql()->column("SHOW TABLES;");
-	if (!in_array("migrations", $tables)) {
-		mysql()->execute("
-			CREATE TABLE `migrations` (
-				`id` BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
-				`name` VARCHAR(255) NOT NULL,
-				`created_at` DATETIME NOT NULL,
-				PRIMARY KEY (`id`),
-				UNIQUE (`name`)
-			);
-		");
-	}
-	$files = glob($migrations);
-	sort($files);
-	foreach ($files as $file) {
-		$name = basename($file);
-		$count = mysql()->value("SELECT COUNT(`id`) FROM `migrations` WHERE `name` = ?;", [$name]);
-		if (!$count) {
-			$callable = require $file;
-			call_user_func($callable);
-			mysql()->insert("migrations", [
-				"name" => $name,
-				"created_at" => now()->format(MYSQL_DATETIME)
-			]);
-		}
-	}
-}
-
 function redis(): Redis
 {
-	$redis = Globals::get("REDIS");
+	$redis = Container::get("Redis");
 	if (!$redis) {
 		$redis = new Redis();
-		Globals::set("REDIS", $redis);
+		Container::set("Redis", $redis);
 	}
 	return $redis;
 }

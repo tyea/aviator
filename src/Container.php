@@ -2,7 +2,7 @@
 
 namespace Tyea\Aviator;
 
-class Globals
+class Container
 {
 	private function __construct()
 	{
@@ -12,11 +12,11 @@ class Globals
 
 	public static function get(string $name): mixed
 	{
-		return Globals::$values[$name] ?? null;
+		return Container::$values[$name] ?? null;
 	}
 
 	public static function set(string $name, mixed $value): void
 	{
-		Globals::$values[$name] = $value;
+		Container::$values[$name] = $value;
 	}
 }

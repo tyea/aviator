@@ -27,10 +27,62 @@ composer require tyea/aviator
 * Sessions - `session()`
 * Validation - `validate()`
 * DateTimes - `now()`
-* MySQL - `mysql()->configure()`, `mysql()->execute()`, `mysql()->insert()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->update()`, `mysql()->begin()`, `mysql()->end()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
-* Migrations - `migrate()`
+* MySQL - `mysql()->configure()`, `mysql()->execute()`, `mysql()->insert()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->update()`, `mysql()->delete()`, `mysql()->migrate()`, `mysql()->table()->insert()`, `mysql()->table()->row()`, `mysql()->table()->update()`, `mysql()->table()->delete()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
 * Redis - `redis()->configure()` and `redis()->command()`
 * Curl - `curl()`
+
+## Examples
+
+```
+$data = request()->request->all();
+$rules = [
+    "email_address" => [
+        "Type" => [
+            "type" => "string",
+        ],
+        "Length" => [
+            "min" => 1,
+            "max" => 255
+        ],
+        "EmailAddress" => []
+    ]
+];
+$errors = validate($data, $rules);
+if ($errors) {
+    response()->json(["errors" => $errors], 400);
+}
+```
+
+```
+$dsn = sprintf(
+	"mysql:host=%s;port=%s;dbname=%s;charset=%s",
+	env("MYSQL_HOST"),
+	env("MYSQL_PORT"),
+	env("MYSQL_DATABASE"),
+	env("MYSQL_CHARACTER_SET")
+);
+$options = [
+	Pdo::ATTR_ERRMODE => Pdo::ERRMODE_EXCEPTION,
+	Pdo::ATTR_EMULATE_PREPARES => false,
+    Pdo::ATTR_TIMEOUT => 3
+];
+mysql()->configure($dsn, env("MYSQL_USERNAME"), env("MYSQL_PASSWORD"), $options);
+```
+
+```
+redis()->configure([
+    "host" => env("REDIS_HOST"),
+    "port" => env("REDIS_PORT"),
+    "connectTimeout" => 3
+]);
+```
+
+```
+$response = curl()->request("GET", "http://www.example.com/foo");
+if ($response->getStatusCode() == 200) {
+    echo $response->getContent() . "\n";
+}
+```
 
 ## Snippets
 
@@ -58,21 +110,6 @@ function handle_error(Throwable $throwable): void
 
 ```
 session(["cookie_httponly" => true])->start();
-```
-
-```
-$dsn = sprintf(
-	"mysql:host=%s;port=%s;dbname=%s;charset=%s",
-	env("MYSQL_HOST"),
-	env("MYSQL_PORT"),
-	env("MYSQL_DATABASE"),
-	env("MYSQL_CHARACTER_SET")
-);
-$options = [
-	Pdo::ATTR_ERRMODE => Pdo::ERRMODE_EXCEPTION,
-	Pdo::ATTR_EMULATE_PREPARES => false
-];
-mysql()->configure($dsn, env("MYSQL_USERNAME"), env("MYSQL_PASSWORD"), $options);
 ```
 
 ## Author

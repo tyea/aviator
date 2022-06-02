@@ -31,7 +31,7 @@ class MySql
 		return $this->pdo;
 	}
 
-	private function execute(string $query, array $params = []): PdoStatement
+	public function execute(string $query, array $params = []): PdoStatement
 	{
 		$statement = $this->pdo()->prepare($query);
 		if (!$statement->execute($params)) {
@@ -103,14 +103,14 @@ class MySql
 		$tables = mysql()->column("SHOW TABLES;");
 		if (!in_array("migrations", $tables)) {
 			mysql()->execute("
-			CREATE TABLE `migrations` (
-				`id` BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
-				`name` VARCHAR(255) NOT NULL,
-				`created_at` DATETIME NOT NULL,
-				PRIMARY KEY (`id`),
-				UNIQUE (`name`)
-			);
-		");
+				CREATE TABLE `migrations` (
+					`id` BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+					`name` VARCHAR(255) NOT NULL,
+					`created_at` DATETIME NOT NULL,
+					PRIMARY KEY (`id`),
+					UNIQUE (`name`)
+				);
+			");
 		}
 		$files = glob($migrations);
 		sort($files);
@@ -127,8 +127,8 @@ class MySql
 		}
 	}
 
-	public function table(string $name, string $primaryKey = "id"): Table
+	public function table(string $name, string $primaryKey = "id"): MySqlTable
 	{
-		return new Table($name, $primaryKey);
+		return new MySqlTable($name, $primaryKey);
 	}
 }

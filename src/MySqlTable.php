@@ -4,7 +4,7 @@ namespace Tyea\Aviator;
 
 use Exception;
 
-class Table
+class MySqlTable
 {
 	private $name;
 	private $primaryKey;

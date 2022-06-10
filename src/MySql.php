@@ -119,16 +119,8 @@ class MySql
 			$count = mysql()->value("SELECT COUNT(`id`) FROM `migrations` WHERE `name` = ?;", [$name]);
 			if (!$count) {
 				mysql()->execute(file_get_contents($file));
-				mysql()->table("migrations")->insert([
-					"name" => $name,
-					"created_at" => now()->format(MYSQL_DATETIME)
-				]);
+				mysql()->insert("INSERT INTO `migrations` (`name`, `created_at`) VALUES (?, NOW());", [$name]);
 			}
 		}
-	}
-
-	public function table(string $name, string $primaryKey = "id"): MySqlTable
-	{
-		return new MySqlTable($name, $primaryKey);
 	}
 }

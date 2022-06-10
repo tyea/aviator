@@ -26,9 +26,11 @@ composer require tyea/aviator
 * Error handling - `app()->error()`
 * Sessions - `session()`
 * Validation - `validate()`
+* Constraints - `"StartsWith"`, `"Contains"`, `"EndsWith"`, `"Matches"`, `"EmailAddress"`, `"MySqlExists"`, `"MySqlNotExists"`
 * DateTimes - `now()`
-* MySQL - `mysql()->configure()`, `mysql()->execute()`, `mysql()->insert()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->update()`, `mysql()->delete()`, `mysql()->migrate()`, `mysql()->table()->insert()`, `mysql()->table()->row()`, `mysql()->table()->update()`, `mysql()->table()->delete()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
+* MySQL - `mysql()->configure()`, `mysql()->execute()`, `mysql()->rows()`, `mysql()->row()`, `mysql()->column()`, `mysql()->value()`, `mysql()->map()`, `mysql()->update()`, `mysql()->delete()`, `mysql()->migrate()`, `MYSQL_DATETIME`, `MYSQL_DATE`, `MYSQL_TIME`, `MYSQL_TRUE`, and `MYSQL_FALSE`
 * Redis - `redis()->configure()` and `redis()->command()`
+* Models - `(new Model())->insert()`, `(new Model())->row()`, `(new Model())->update()`, `(new Model())->delete()`
 * Curl - `curl()`
 
 ## Examples
@@ -45,6 +47,14 @@ $rules = [
             "max" => 255
         ],
         "EmailAddress" => []
+    ],
+    "password" => [
+          "Type" => [
+              "type" => "string",
+          ],
+          "Length" => [
+              "min" => 1
+          ]
     ]
 ];
 $errors = validate($data, $rules);
@@ -110,6 +120,16 @@ function handle_error(Throwable $throwable): void
 
 ```
 session(["cookie_httponly" => true])->start();
+```
+
+```
+use Tyea\Aviator\Model;
+
+function model(string $model): Model
+{
+    $class = "\\Foo\\Bar\\" . $model;
+    return new $class();
+}
 ```
 
 ## Author

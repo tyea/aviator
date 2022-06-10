@@ -4,15 +4,16 @@ namespace Tyea\Aviator;
 
 use Exception;
 
-class MySqlTable
+class Model
 {
-	private $name;
-	private $primaryKey;
+	protected $name;
+	protected $primaryKey;
 
-	public function __construct(string $name, string $primaryKey)
+	public function __construct()
 	{
-		$this->name = $name;
-		$this->primaryKey = $primaryKey;
+		if (!$this->name || !$this->primaryKey) {
+			throw new Exception();
+		}
 	}
 
 	public function insert(array $row): array
@@ -32,34 +33,34 @@ class MySqlTable
 			"`" . implode("`, `", $columns) . "`",
 			implode(", ", array_fill(0, count($columns), "?"))
 		);
-		$id = mysql()->insert($query, $params);
-		return $this->row($id);
+		$primaryKey = mysql()->insert($query, $params);
+		return $this->row($primaryKey);
 	}
 
-	public function row(mixed $id): ?array
+	public function row(mixed $primaryKey): ?array
 	{
 		$query = sprintf(
 			"SELECT * FROM `%s` WHERE `%s` = ? LIMIT 1;",
 			$this->name,
 			$this->primaryKey
 		);
-		return mysql()->row($query, [$id]);
+		return mysql()->row($query, [$primaryKey]);
 	}
 
 	public function update(array $row): void
 	{
 		$columns = [];
 		$params = [];
-		$id = null;
+		$primaryKey = null;
 		foreach ($row as $column => $value) {
 			if ($column == $this->primaryKey) {
-				$id = $value;
+				$primaryKey = $value;
 				continue;
 			}
 			$columns[] = $column;
 			$params[] = $value;
 		}
-		if (!$id || !$columns) {
+		if (!$primaryKey || !$columns) {
 			throw new Exception();
 		}
 		$query = sprintf(
@@ -68,20 +69,20 @@ class MySqlTable
 			"`" . implode("` = ?, `", $columns) . "` = ?",
 			$this->primaryKey
 		);
-		$params[] = $id;
+		$params[] = $primaryKey;
 		mysql()->update($query, $params);
 	}
 
 	public function delete(array $row): void
 	{
-		$id = null;
+		$primaryKey = null;
 		foreach ($row as $column => $value) {
 			if ($column == $this->primaryKey) {
-				$id = $value;
+				$primaryKey = $value;
 				break;
 			}
 		}
-		if (!$id) {
+		if (!$primaryKey) {
 			throw new Exception();
 		}
 		$query = sprintf(
@@ -89,6 +90,6 @@ class MySqlTable
 			$this->name,
 			$this->primaryKey
 		);
-		mysql()->delete($query, [$id]);
+		mysql()->delete($query, [$primaryKey]);
 	}
 }

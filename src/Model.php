@@ -6,12 +6,12 @@ use Exception;
 
 class Model
 {
-	protected $name;
-	protected $primaryKey;
+	protected $table;
+	protected $primaryKey = "id";
 
 	public function __construct()
 	{
-		if (!$this->name || !$this->primaryKey) {
+		if (!$this->table) {
 			throw new Exception();
 		}
 	}
@@ -29,7 +29,7 @@ class Model
 		}
 		$query = sprintf(
 			"INSERT INTO `%s` (%s) VALUES (%s);",
-			$this->name,
+			$this->table,
 			"`" . implode("`, `", $columns) . "`",
 			implode(", ", array_fill(0, count($columns), "?"))
 		);
@@ -41,7 +41,7 @@ class Model
 	{
 		$query = sprintf(
 			"SELECT * FROM `%s` WHERE `%s` = ? LIMIT 1;",
-			$this->name,
+			$this->table,
 			$this->primaryKey
 		);
 		return mysql()->row($query, [$primaryKey]);
@@ -65,7 +65,7 @@ class Model
 		}
 		$query = sprintf(
 			"UPDATE `%s` SET %s WHERE `%s` = ? LIMIT 1;",
-			$this->name,
+			$this->table,
 			"`" . implode("` = ?, `", $columns) . "` = ?",
 			$this->primaryKey
 		);
@@ -87,7 +87,7 @@ class Model
 		}
 		$query = sprintf(
 			"DELETE FROM `%s` WHERE `%s` = ? LIMIT 1;",
-			$this->name,
+			$this->table,
 			$this->primaryKey
 		);
 		mysql()->delete($query, [$primaryKey]);
